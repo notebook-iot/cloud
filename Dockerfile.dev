@@ -1,0 +1,12 @@
+FROM golang:1.26-alpine
+RUN apk add \
+  --no-cache \
+  --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+  --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+	air
+WORKDIR /home/cloud
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+COPY . . 
+EXPOSE 3000
+CMD [ "air" ]
