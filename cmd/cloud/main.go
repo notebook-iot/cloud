@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -13,6 +14,8 @@ import (
 	"github.com/notebook-iot/cloud/internal/context"
 	"github.com/notebook-iot/cloud/internal/routes/dashboard"
 	"github.com/notebook-iot/cloud/internal/routes/ingest"
+
+	_ "github.com/lib/pq"
 )
 
 var logger *slog.Logger
@@ -56,7 +59,14 @@ func main() {
 		}
 	}
 
-	err := ParseTemplates("./templates")
+	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	if err != nil {
+		logger.Error("error connecting to database", "err", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	err = ParseTemplates("./templates")
 	if err != nil {
 		logger.Error("error parsing templates", "err", err)
 	}
@@ -68,6 +78,7 @@ func main() {
 	context := context.Context{
 		Logger:    logger,
 		Templates: templates,
+		DB:        db,
 	}
 
 	r.Post("/ingest", func(w http.ResponseWriter, r *http.Request) {
