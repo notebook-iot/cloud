@@ -16,6 +16,7 @@ import (
 	"github.com/notebook-iot/cloud/internal/routes/ingest"
 
 	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 )
 
 var logger *slog.Logger
@@ -65,6 +66,17 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		logger.Error("failed to set goose dialect", "err", err)
+		os.Exit(1)
+	}
+
+	if err := goose.Up(db, "migrations"); err != nil {
+		logger.Error("migration failed", "err", err)
+		os.Exit(1)
+	}
+	logger.Info("migrations applied successfully")
 
 	err = ParseTemplates("./templates")
 	if err != nil {
