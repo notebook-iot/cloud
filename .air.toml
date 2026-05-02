@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-cmd = "go build -o ./tmp/app/cloud && ls ./tmp/app"
+cmd = "go build -o ./tmp/app/cloud ./cmd/cloud/main.go && ls ./tmp/app"
 bin = "tmp/app"
 
 full_bin = "chmod +x ./tmp/app/cloud && ./tmp/app/cloud"
