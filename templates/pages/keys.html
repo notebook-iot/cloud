@@ -1,0 +1,43 @@
+{{define "content"}}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold">API Access</h1>
+    <p class="text-base-content/60">Manage secrets for device authentication</p>
+</div>
+
+<div class="card bg-base-100 shadow-xl border border-base-300">
+    <div class="card-body">
+        <div class="alert alert-info shadow-sm mb-6">
+            <i data-lucide="info"></i>
+            <span>Devices must include the <code>X-API-KEY</code> header to post to <code>/ingest</code>.</span>
+        </div>
+
+        <div class="space-y-4">
+            <div class="p-4 bg-base-200 rounded-lg flex items-center justify-between border border-base-300">
+                <div>
+                    <div class="font-bold">Production Key (Main Fleet)</div>
+                    <div class="font-mono text-xs opacity-60">nb_live_49f9...a3b2</div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn btn-sm btn-ghost"><i data-lucide="eye"></i></button>
+                    <button class="btn btn-sm btn-ghost text-error"><i data-lucide="trash"></i></button>
+                </div>
+            </div>
+
+            <div class="p-4 bg-base-200 rounded-lg flex items-center justify-between border border-base-300">
+                <div>
+                    <div class="font-bold">Development Key (Local Testing)</div>
+                    <div class="font-mono text-xs opacity-60">nb_test_92k2...z1x9</div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn btn-sm btn-ghost"><i data-lucide="eye"></i></button>
+                    <button class="btn btn-sm btn-ghost text-error"><i data-lucide="trash"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-actions justify-end mt-6">
+            <button class="btn btn-primary">Create New Key</button>
+        </div>
+    </div>
+</div>
+{{end}}

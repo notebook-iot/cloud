@@ -1,0 +1,47 @@
+{{define "content"}}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h1 class="text-3xl font-bold tracking-tight decoration-primary">Fleet Pages</h1>
+        <p class="text-base-content/60 font-mono text-sm">Manage Connected Pages</p>
+    </div>
+    <button class="btn btn-primary">
+        <i data-lucide="plus-circle"></i> Add Node
+    </button>
+</div>
+
+<div class="card bg-base-100 shadow-xl border border-base-300">
+    <div class="overflow-x-auto">
+        <table class="table table-zebra">
+            <thead>
+                <tr>
+                    <th>Device Name</th>
+                    <th>Status</th>
+                    <th>Network</th>
+                    <th>Last Seen</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="avatar placeholder">
+                                <div class="bg-neutral text-neutral-content rounded-full w-8">
+                                    <span class="text-xs">A1</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold font-mono">CC-ESP32-A1</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge badge-success badge-outline">Active</span></td>
+                    <td><span class="text-xs font-semibold uppercase">WiFi (eduroam)</span></td>
+                    <td>2m ago</td>
+                    <td><button class="btn btn-square btn-ghost btn-sm"><i data-lucide="more-vertical"></i></button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}

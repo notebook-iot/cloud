@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="nord">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notebook IoT Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-screen bg-base-200">
+
+    <div class="drawer lg:drawer-open">
+        <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+        
+        <div class="drawer-content flex flex-col">
+            
+            <div class="navbar bg-base-100 shadow-sm lg:hidden">
+                <div class="flex-none">
+                    <label for="my-drawer-2" class="btn btn-square btn-ghost drawer-button">
+                        <i data-lucide="menu"></i>
+                    </label>
+                </div>
+                <div class="flex-1">
+                    <a class="btn btn-ghost text-xl font-mono text-primary">Notebook</a>
+                </div>
+            </div>
+
+            <main class="p-6">
+                <header class="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold">Device Overview</h1>
+                        <p class="text-base-content/60">Manage Connected Nodes</p>
+                    </div>
+                    <div class="badge badge-success gap-2 py-3 px-4">
+                        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                        Cloud Sync Active
+                    </div>
+                </header>
+
+                {{block "content" .}}
+                {{end}}
+            </main>
+        </div> 
+
+        <div class="drawer-side">
+            <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label> 
+            <ul class="menu p-4 w-80 min-h-full bg-base-100 text-base-content border-r border-base-300">
+                <li class="mb-8">
+                    <div class="flex items-center gap-3 bg-transparent hover:bg-transparent">
+                        <div class="w-10 h-10 bg-primary text-primary-content rounded-lg flex items-center justify-center font-bold">
+                            CC
+                        </div>
+                        <span class="text-2xl font-mono tracking-tighter font-bold">Notebook</span>
+                    </div>
+                </li>
+                
+                <li><a class="active" href="/"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+                <li><a href="/devices"><i data-lucide="cpu"></i> Devices</a></li>
+                <li><a href="/visualization"><i data-lucide="network"></i> Visualization</a></li>
+                <li><a href="/events"><i data-lucide="database"></i> Events (TimescaleDB)</a></li>
+                <div class="divider">Settings</div>
+                <li><a href="/keys"><i data-lucide="key"></i> API Keys</a></li>
+                <li><a><i data-lucide="settings"></i> System Config</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    <script>
+        document.querySelectorAll('.menu a').forEach(link => {
+            if (link.getAttribute('href') === window.location.pathname) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>

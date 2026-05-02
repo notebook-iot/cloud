@@ -1,0 +1,18 @@
+{{define "content"}}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Event Stream</h1>
+    <div class="join">
+        <button class="btn btn-sm btn-outline join-item">Pause</button>
+        <button class="btn btn-sm btn-outline join-item text-error">Clear Logs</button>
+    </div>
+</div>
+
+<div class="mockup-code bg-base-300 text-sm shadow-2xl overflow-y-auto max-h-[70vh]">
+    <pre data-prefix=">"><code>Starting listener on TimescaleDB hypertable...</code></pre>
+    <pre data-prefix="21:40:02" class="text-success"><code>[INGEST] Node CC-ESP32-A1: Payload Validated {temp: 24.2, hum: 40}</code></pre>
+    <pre data-prefix="21:41:15" class="text-warning"><code>[SYSTEM] Node CC-ESP32-A2: Connection Interrupted (Timeout)</code></pre>
+    <pre data-prefix="21:42:00" class="text-info"><code>[AUTH] Handshake Successful: MAC 24:0A:C4:XX:XX</code></pre>
+    <pre data-prefix="21:43:10" class="text-success"><code>[INGEST] Node CC-ESP32-A1: Payload Validated {temp: 24.3, hum: 41}</code></pre>
+    <pre data-prefix="!"><code>Processing 420 events/sec...</code></pre>
+</div>
+{{end}}
