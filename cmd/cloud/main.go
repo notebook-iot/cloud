@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	"github.com/notebook-iot/cloud/internal/context"
+	"github.com/notebook-iot/cloud/internal/routes/dashboard"
 	"github.com/notebook-iot/cloud/internal/routes/ingest"
 )
 
@@ -35,6 +36,10 @@ func main() {
 
 	r.Post("/ingest", func(w http.ResponseWriter, r *http.Request) {
 		handleErr(ingest.Ingest(w, r, &context), w, "Error ingesting data")
+	})
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		handleErr(dashboard.Dashboard(w, r, &context), w, "Error fetching dashboard")
 	})
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), r)
