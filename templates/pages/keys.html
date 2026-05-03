@@ -12,32 +12,100 @@
         </div>
 
         <div class="space-y-4">
+            <!-- Example of how existing keys will look -->
             <div class="p-4 bg-base-200 rounded-lg flex items-center justify-between border border-base-300">
                 <div>
                     <div class="font-bold">Production Key (Main Fleet)</div>
-                    <div class="font-mono text-xs opacity-60">nb_live_49f9...a3b2</div>
+                    <div class="font-mono text-xs opacity-60">nb_live_************************a3b2</div>
                 </div>
                 <div class="flex gap-2">
-                    <button class="btn btn-sm btn-ghost"><i data-lucide="eye"></i></button>
-                    <button class="btn btn-sm btn-ghost text-error"><i data-lucide="trash"></i></button>
-                </div>
-            </div>
-
-            <div class="p-4 bg-base-200 rounded-lg flex items-center justify-between border border-base-300">
-                <div>
-                    <div class="font-bold">Development Key (Local Testing)</div>
-                    <div class="font-mono text-xs opacity-60">nb_test_92k2...z1x9</div>
-                </div>
-                <div class="flex gap-2">
-                    <button class="btn btn-sm btn-ghost"><i data-lucide="eye"></i></button>
                     <button class="btn btn-sm btn-ghost text-error"><i data-lucide="trash"></i></button>
                 </div>
             </div>
         </div>
 
         <div class="card-actions justify-end mt-6">
-            <button class="btn btn-primary">Create New Key</button>
+            <button class="btn btn-primary" onclick="generateNewKey()" id="generateBtn">
+                <span id="btnText">Create New Key</span>
+                <span id="btnLoader" class="loading loading-spinner loading-sm hidden"></span>
+            </button>
         </div>
     </div>
 </div>
+
+<!-- Modal for displaying the new API Key -->
+<dialog id="newKeyModal" class="modal">
+    <div class="modal-box border-2 border-primary">
+        <h3 class="font-bold text-lg text-primary flex items-center gap-2">
+            <i data-lucide="shield-check"></i> Key Generated Successfully
+        </h3>
+        <p class="py-4 font-semibold text-error">
+            Please copy this key immediately. For security reasons, we do not store the raw key and you will not be able to see it again!
+        </p>
+        
+        <div class="bg-base-300 p-4 rounded-lg flex items-center justify-between gap-4">
+            <code id="rawKeyDisplay" class="text-sm font-mono break-all select-all"></code>
+            <button class="btn btn-square btn-sm btn-outline" onclick="copyKey()">
+                <i data-lucide="copy"></i>
+            </button>
+        </div>
+
+        <div class="modal-action">
+            <form method="dialog">
+                <!-- If there is a button in form, it will close the modal -->
+                <button class="btn" onclick="window.location.reload()">I have copied the key</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<script>
+    async function generateNewKey() {
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const btn = document.getElementById('generateBtn');
+        
+        // Loading state
+        btn.disabled = true;
+        btnText.classList.add('hidden');
+        btnLoader.classList.remove('hidden');
+
+        try {
+            const response = await fetch('/api/keys', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Populate the modal with the new key
+                document.getElementById('rawKeyDisplay').innerText = data.raw_key;
+                
+                // Show the modal
+                document.getElementById('newKeyModal').showModal();
+                
+                // Re-initialize lucide icons for the newly injected modal content
+                lucide.createIcons(); 
+            } else {
+                alert('Failed to generate key. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error generating key:', error);
+            alert('A network error occurred.');
+        } finally {
+            // Reset button state
+            btn.disabled = false;
+            btnText.classList.remove('hidden');
+            btnLoader.classList.add('hidden');
+        }
+    }
+
+    function copyKey() {
+        const keyText = document.getElementById('rawKeyDisplay').innerText;
+        navigator.clipboard.writeText(keyText).then(() => {
+            alert('Key copied to clipboard!');
+        });
+    }
+</script>
 {{end}}

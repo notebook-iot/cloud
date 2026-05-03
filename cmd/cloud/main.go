@@ -72,7 +72,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := goose.Up(db, "migrations"); err != nil {
+	if err := goose.Up(db, "cmd/cloud/migrations"); err != nil {
 		logger.Error("migration failed", "err", err)
 		os.Exit(1)
 	}
@@ -115,6 +115,10 @@ func main() {
 
 	r.Get("/visualization", func(w http.ResponseWriter, r *http.Request) {
 		handleErr(dashboard.Visualization(w, r, &context), w, "keys")
+	})
+
+	r.Post("/api/keys", func(w http.ResponseWriter, r *http.Request) {
+		handleErr(dashboard.CreateKey(w, r, &context), w, "create_key")
 	})
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), r)
