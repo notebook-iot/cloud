@@ -60,15 +60,29 @@ func ValidateDevice(w http.ResponseWriter, r *http.Request, ctx *context.Context
 	hash := sha256.Sum256([]byte(data.API_Key))
 	hashedIncoming := hex.EncodeToString(hash[:])
 
+	var dbID string
 	var dbMac string
 	var status string
-	err := ctx.DB.QueryRow("SELECT COALESCE(mac_address, ''), status FROM devices WHERE device_id = $1 AND hashed_api_key = $2",
-		data.DeviceID, hashedIncoming).Scan(&dbMac, &status)
+
+	err := ctx.DB.QueryRow("SELECT device_id, COALESCE(mac_address, ''), status FROM devices WHERE device_id = $1 AND hashed_api_key = $2",
+		data.DeviceID, hashedIncoming).Scan(&dbID, &dbMac, &status)
 
 	if err != nil {
-		ctx.Logger.Warn("Unauthorized access attempt", "id", data.DeviceID, "err", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		ctx.Logger.Info("Device ID not found, trying MAC fallback", "id", data.DeviceID, "mac", data.Mac_Address)
 
+		err = ctx.DB.QueryRow("SELECT device_id, COALESCE(mac_address, ''), status FROM devices WHERE mac_address = $1 AND hashed_api_key = $2",
+			data.Mac_Address, hashedIncoming).Scan(&dbID, &dbMac, &status)
+
+		if err == nil {
+			ctx.Logger.Info("Device matched via MAC fallback", "mac", data.Mac_Address, "canonical_id", dbID)
+			// update the incoming data to use the canonical ID found in the database
+			data.DeviceID = dbID
+		}
+	}
+
+	if err != nil {
+		ctx.Logger.Warn("Unauthorized access attempt", "id", data.DeviceID, "mac", data.Mac_Address, "err", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return err
 	}
 
@@ -79,7 +93,6 @@ func ValidateDevice(w http.ResponseWriter, r *http.Request, ctx *context.Context
 		ctx.Logger.Info("New device approved and locked to MAC", "id", data.DeviceID, "mac", data.Mac_Address)
 	} else if dbMac != data.Mac_Address {
 		ctx.Logger.Error("Hardware mismatch!", "id", data.DeviceID, "expected", dbMac, "got", data.Mac_Address)
-
 		http.Error(w, "Forbidden: Invalid Hardware", http.StatusForbidden)
 
 		return http.ErrAbortHandler
