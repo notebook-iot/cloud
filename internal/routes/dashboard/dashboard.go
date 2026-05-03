@@ -98,6 +98,20 @@ func Dashboard(w http.ResponseWriter, r *http.Request, ctx *context.Context) err
 		}
 	}
 
+	// recent Events
+	eRows, err := ctx.DB.Query("SELECT timestamp, device_id, temperature FROM sensor_data ORDER BY timestamp DESC LIMIT 5")
+	if err == nil {
+		defer eRows.Close()
+		for eRows.Next() {
+			var e Event
+			var t time.Time
+			if err := eRows.Scan(&t, &e.DeviceID, &e.Temperature); err == nil {
+				e.Time = t.Format("15:04:05")
+				stats.RecentEvents = append(stats.RecentEvents, e)
+			}
+		}
+	}
+
 	return render(w, "dashboard.html", stats)
 }
 
@@ -151,7 +165,23 @@ func Devices(w http.ResponseWriter, r *http.Request, ctx *context.Context) error
 }
 
 func Events(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
-	return render(w, "events.html", nil)
+	var events []Event
+	rows, err := ctx.DB.Query("SELECT timestamp, device_id, temperature FROM sensor_data ORDER BY timestamp DESC LIMIT 50")
+	if err != nil {
+		ctx.Logger.Error("Failed to fetch events", "err", err)
+	} else {
+		defer rows.Close()
+		for rows.Next() {
+			var e Event
+			var t time.Time
+			if err := rows.Scan(&t, &e.DeviceID, &e.Temperature); err == nil {
+				e.Time = t.Format("2006-01-02 15:04:05")
+				events = append(events, e)
+			}
+		}
+	}
+
+	return render(w, "events.html", events)
 }
 
 func Visualization(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {

@@ -91,27 +91,22 @@
         <div class="card-body">
             <h2 class="card-title text-sm font-bold uppercase tracking-widest text-base-content/50 mb-4">Event Stream</h2>
             <ul class="steps steps-vertical space-y-4">
+                {{range .RecentEvents}}
                 <li class="step step-primary">
                     <div class="text-left ml-4">
-                        <div class="text-xs opacity-50">14:02:10</div>
+                        <div class="text-xs opacity-50">{{.Time}}</div>
                         <div class="font-bold text-sm">Data Ingested</div>
-                        <p class="text-xs">Node A1 reported: 24°C</p>
+                        <p class="text-xs">Node {{.DeviceID}} reported: {{.Temperature}}°C</p>
                     </div>
                 </li>
-                <li class="step step-primary">
-                    <div class="text-left ml-4">
-                        <div class="text-xs opacity-50">13:58:45</div>
-                        <div class="font-bold text-sm">OTA Update</div>
-                        <p class="text-xs">Node A2 reported: 24°C</p>
-                    </div>
-                </li>
+                {{else}}
                 <li class="step">
                     <div class="text-left ml-4">
-                        <div class="text-xs opacity-50">13:40:00</div>
-                        <div class="font-bold text-sm">Auth Failure</div>
-                        <p class="text-xs text-error font-medium">Unknown MAC attempted handshake</p>
+                        <div class="text-xs opacity-50">--:--:--</div>
+                        <div class="font-bold text-sm italic">Waiting for data...</div>
                     </div>
                 </li>
+                {{end}}
             </ul>
         </div>
     </div>
