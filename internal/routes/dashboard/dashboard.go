@@ -26,6 +26,21 @@ type DeviceRow struct {
 	Network    string
 }
 
+var funcs = template.FuncMap{
+	"sub": func(a, b int) int {
+		return a - b
+	},
+}
+
+func render(w http.ResponseWriter, page string, data interface{}) error {
+	tmpl, err := template.New("layout.html").Funcs(funcs).ParseFiles("templates/layout/layout.html", "templates/pages/"+page)
+	if err != nil {
+		return err
+	}
+
+	return tmpl.ExecuteTemplate(w, "layout.html", data)
+}
+
 func Dashboard(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
 	stats := DashboardStats{}
 
@@ -74,48 +89,23 @@ func Dashboard(w http.ResponseWriter, r *http.Request, ctx *context.Context) err
 		}
 	}
 
-	tmpl, err := template.ParseFiles("templates/layout/layout.html", "templates/pages/dashboard.html")
-	if err != nil {
-		return err
-	}
-
-	return tmpl.ExecuteTemplate(w, "layout.html", stats)
+	return render(w, "dashboard.html", stats)
 }
 
 func Keys(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
-	tmpl, err := template.ParseFiles("templates/layout/layout.html", "templates/pages/keys.html")
-	if err != nil {
-		return err
-	}
-
-	return tmpl.ExecuteTemplate(w, "layout.html", nil)
+	return render(w, "keys.html", nil)
 }
 
 func Devices(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
-	tmpl, err := template.ParseFiles("templates/layout/layout.html", "templates/pages/devices.html")
-	if err != nil {
-		return err
-	}
-
-	return tmpl.ExecuteTemplate(w, "layout.html", nil)
+	return render(w, "devices.html", nil)
 }
 
 func Events(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
-	tmpl, err := template.ParseFiles("templates/layout/layout.html", "templates/pages/events.html")
-	if err != nil {
-		return err
-	}
-
-	return tmpl.ExecuteTemplate(w, "layout.html", nil)
+	return render(w, "events.html", nil)
 }
 
 func Visualization(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
-	tmpl, err := template.ParseFiles("templates/layout/layout.html", "templates/pages/visualization.html")
-	if err != nil {
-		return err
-	}
-
-	return tmpl.ExecuteTemplate(w, "layout.html", nil)
+	return render(w, "visualization.html", nil)
 }
 
 func CreateKey(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
