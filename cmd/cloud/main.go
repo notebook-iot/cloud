@@ -23,7 +23,11 @@ var logger *slog.Logger
 var templates *template.Template
 
 func ParseTemplates(dir string) error {
-	tmpl := template.New("")
+	tmpl := template.New("").Funcs(template.FuncMap{
+		"sub": func(a, b int) int {
+			return a - b
+		},
+	})
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -97,28 +101,40 @@ func main() {
 		handleErr(ingest.Ingest(w, r, &context), w, "ingest")
 	})
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		handleErr(dashboard.Dashboard(w, r, &context), w, "dashboard")
+	r.Get("/login", func(w http.ResponseWriter, r *http.Request) {
+		handleErr(dashboard.Login(w, r, &context), w, "login")
 	})
 
-	r.Get("/keys", func(w http.ResponseWriter, r *http.Request) {
-		handleErr(dashboard.Keys(w, r, &context), w, "keys")
+	r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
+		handleErr(dashboard.Login(w, r, &context), w, "login")
 	})
 
-	r.Get("/devices", func(w http.ResponseWriter, r *http.Request) {
-		handleErr(dashboard.Devices(w, r, &context), w, "keys")
-	})
+	r.Group(func(r chi.Router) {
+		r.Use(dashboard.AuthMiddleware(&context))
 
-	r.Get("/events", func(w http.ResponseWriter, r *http.Request) {
-		handleErr(dashboard.Events(w, r, &context), w, "keys")
-	})
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			handleErr(dashboard.Dashboard(w, r, &context), w, "dashboard")
+		})
 
-	r.Get("/visualization", func(w http.ResponseWriter, r *http.Request) {
-		handleErr(dashboard.Visualization(w, r, &context), w, "keys")
-	})
+		r.Get("/keys", func(w http.ResponseWriter, r *http.Request) {
+			handleErr(dashboard.Keys(w, r, &context), w, "keys")
+		})
 
-	r.Post("/api/keys", func(w http.ResponseWriter, r *http.Request) {
-		handleErr(dashboard.CreateKey(w, r, &context), w, "create_key")
+		r.Get("/devices", func(w http.ResponseWriter, r *http.Request) {
+			handleErr(dashboard.Devices(w, r, &context), w, "keys")
+		})
+
+		r.Get("/events", func(w http.ResponseWriter, r *http.Request) {
+			handleErr(dashboard.Events(w, r, &context), w, "keys")
+		})
+
+		r.Get("/visualization", func(w http.ResponseWriter, r *http.Request) {
+			handleErr(dashboard.Visualization(w, r, &context), w, "keys")
+		})
+
+		r.Post("/api/keys", func(w http.ResponseWriter, r *http.Request) {
+			handleErr(dashboard.CreateKey(w, r, &context), w, "create_key")
+		})
 	})
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), r)

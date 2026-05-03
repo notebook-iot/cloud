@@ -30,13 +30,17 @@ func Ingest(w http.ResponseWriter, r *http.Request, ctx *context.Context) error 
 		return err
 	}
 
+	if err = ValidateDevice(w, r, ctx, &data); err != nil {
+		return nil
+	}
+
 	if data.Timestamp.IsZero() {
 		data.Timestamp = time.Now()
 	}
 
-	query := `INSERT INTO sensor_data 
-	(device_id, api_key, json, wifi_network_name, up_time, latency, mac_address, 
-	temperature, timestamp) 
+	query := `INSERT INTO sensor_data
+	(device_id, api_key, json_payload, wifi_network_name, up_time, latency, mac_address,
+	temperature, timestamp)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	_, err = ctx.DB.Exec(query, data.DeviceID, data.API_Key, data.JSON, data.WiFi_Network_Name,
@@ -52,44 +56,34 @@ func Ingest(w http.ResponseWriter, r *http.Request, ctx *context.Context) error 
 	return nil
 }
 
-func ValidateDevice(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
-	var incoming struct {
-		DeviceID string `json:"device_id"`
-		APIKey   string `json:"api_key"`
-		MAC      string `json:"mac_address"`
-	}
-	// Decode incoming JSON...
-
-	// 1. Hash the incoming API Key to compare with DB
-	hash := sha256.Sum256([]byte(incoming.APIKey))
+func ValidateDevice(w http.ResponseWriter, r *http.Request, ctx *context.Context, data *Telemetry) error {
+	hash := sha256.Sum256([]byte(data.API_Key))
 	hashedIncoming := hex.EncodeToString(hash[:])
 
-	// 2. Fetch the stored record
 	var dbMac string
 	var status string
 	err := ctx.DB.QueryRow("SELECT COALESCE(mac_address, ''), status FROM devices WHERE device_id = $1 AND hashed_api_key = $2",
-		incoming.DeviceID, hashedIncoming).Scan(&dbMac, &status)
+		data.DeviceID, hashedIncoming).Scan(&dbMac, &status)
 
 	if err != nil {
-		// FAIL: Key/ID combo doesn't exist
-		ctx.Logger.Warn("Unauthorized access attempt", "id", incoming.DeviceID)
+		ctx.Logger.Warn("Unauthorized access attempt", "id", data.DeviceID, "err", err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return nil
+
+		return err
 	}
 
-	// 3. Perform the "Approval" Check (Hardware Locking)
 	if dbMac == "" {
-		// First time this key is used! Lock it to this physical MAC address.
 		_, err = ctx.DB.Exec("UPDATE devices SET mac_address = $1, status = 'approved' WHERE device_id = $2",
-			incoming.MAC, incoming.DeviceID)
-		ctx.Logger.Info("New device approved and locked to MAC", "id", incoming.DeviceID, "mac", incoming.MAC)
-	} else if dbMac != incoming.MAC {
-		// FAIL: The key is valid, but the MAC address is different (Cloning detected)
-		ctx.Logger.Error("Hardware mismatch!", "id", incoming.DeviceID, "expected", dbMac, "got", incoming.MAC)
+			data.Mac_Address, data.DeviceID)
+
+		ctx.Logger.Info("New device approved and locked to MAC", "id", data.DeviceID, "mac", data.Mac_Address)
+	} else if dbMac != data.Mac_Address {
+		ctx.Logger.Error("Hardware mismatch!", "id", data.DeviceID, "expected", dbMac, "got", data.Mac_Address)
+
 		http.Error(w, "Forbidden: Invalid Hardware", http.StatusForbidden)
-		return nil
+
+		return http.ErrAbortHandler
 	}
 
-	// All clear! Proceed to store data.
 	return nil
 }
