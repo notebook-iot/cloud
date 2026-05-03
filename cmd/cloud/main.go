@@ -135,6 +135,10 @@ func main() {
 		r.Post("/api/keys", func(w http.ResponseWriter, r *http.Request) {
 			handleErr(dashboard.CreateKey(w, r, &context), w, "create_key")
 		})
+
+		r.Delete("/api/keys/{id}", func(w http.ResponseWriter, r *http.Request) {
+			handleErr(dashboard.DeleteKey(w, r, &context), w, "delete_key")
+		})
 	})
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), r)

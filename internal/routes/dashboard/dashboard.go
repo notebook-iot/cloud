@@ -7,16 +7,25 @@ import (
 	"encoding/json"
 	"html/template"
 	"net/http"
+	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/notebook-iot/cloud/internal/context"
 )
 
 type DashboardStats struct {
-	TotalNodes  int
-	OnlineNow   int
-	AvgLatency  int
-	EventsToday int
-	Devices     []DeviceRow
+	TotalNodes   int
+	OnlineNow    int
+	AvgLatency   int
+	EventsToday  int
+	Devices      []DeviceRow
+	RecentEvents []Event
+}
+
+type Event struct {
+	Time        string
+	DeviceID    string
+	Temperature float64
 }
 
 type DeviceRow struct {
@@ -92,8 +101,49 @@ func Dashboard(w http.ResponseWriter, r *http.Request, ctx *context.Context) err
 	return render(w, "dashboard.html", stats)
 }
 
+type APIKey struct {
+	ID        int
+	Name      string
+	Prefix    string
+	Suffix    string
+	CreatedAt string
+}
+
 func Keys(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
-	return render(w, "keys.html", nil)
+	var keys []APIKey
+	rows, err := ctx.DB.Query("SELECT id, name, prefix, suffix, created_at FROM api_keys ORDER BY created_at DESC")
+	if err != nil {
+		ctx.Logger.Error("Failed to fetch API keys", "err", err)
+	} else {
+		defer rows.Close()
+		for rows.Next() {
+			var k APIKey
+			var createdAt time.Time
+			if err := rows.Scan(&k.ID, &k.Name, &k.Prefix, &k.Suffix, &createdAt); err == nil {
+				k.CreatedAt = createdAt.Format("Jan 02, 2006")
+				keys = append(keys, k)
+			}
+		}
+	}
+
+	return render(w, "keys.html", keys)
+}
+
+func DeleteKey(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "Missing key ID", http.StatusBadRequest)
+		return nil
+	}
+
+	_, err := ctx.DB.Exec("DELETE FROM api_keys WHERE id = $1", id)
+	if err != nil {
+		ctx.Logger.Error("Failed to delete API key", "err", err, "id", id)
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
 func Devices(w http.ResponseWriter, r *http.Request, ctx *context.Context) error {
